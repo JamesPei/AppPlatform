@@ -1,18 +1,13 @@
 #pragma once
 
-#ifndef TIMER_HPP
-#define TIMER_HPP
+#ifndef __TIMER_HPP__
+#define __TIMER_HPP__
 
 #include <cstdint>
 #include <functional>
-#include <chrono>
-
-using seconds = std::chrono::seconds;
-using milliseconds = std::chrono::milliseconds;
-using microseconds = std::chrono::microseconds;
-using nanoseconds = std::chrono::nanoseconds;
-using system_clock = std::chrono::system_clock;
-using time_point = std::chrono::time_point<system_clock, nanoseconds>;
+#include <thread>
+#include "Shortnames.hpp"
+#include "TimerScheduler.hpp"
 
 class Timer
 {
@@ -52,7 +47,7 @@ public:
      */
     template <typename F, typename... Args>
     void WaitAsync(F&& fun, Args&&... args){
-
+        scheduler.RegisterEvent(id_, deadline_timepoint_, fun, duration_);
     };
     
     /**
@@ -78,6 +73,10 @@ public:
      */
     void Cancel();
 
+    uint64_t GetDeadline() const;
+
+    bool operator<=(const Timer& timer);
+
     
 public:
     static Timer CreatePeriodicTimer(uint64_t duration, uint64_t start_time = 0);
@@ -85,7 +84,11 @@ public:
 
 private:
     static uint64_t generateTimerId();
-    
+
+private:
+    static uint64_t last_id;
+
+private:
     Type type_;
     uint64_t id_;
     uint64_t start_timepoint_;
@@ -93,7 +96,7 @@ private:
     uint64_t round_;
     uint64_t deadline_timepoint_;
     std::function<void()> callback_;
-    static uint64_t last_id;
+    TimerScheduler& scheduler;
 };
 
 #endif
