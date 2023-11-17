@@ -1,0 +1,9 @@
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g")
+set(CMAKE_C_STANDARD 99)
+
+add_library(Timer Timer.cpp TimerScheduler.cpp)
+target_include_directories(Timer PUBLIC ${CMAKE_SOURCE_DIR}/include)
+if(DEBUG_MODE)
+    target_compile_definitions(Timer PRIVATE DEBUG_MODE)
+endif()
