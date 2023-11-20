@@ -47,7 +47,15 @@ public:
      */
     template <typename F, typename... Args>
     void WaitAsync(F&& fun, Args&&... args){
-        scheduler.RegisterEvent(id_, deadline_timepoint_, fun, duration_);
+        if(!scheduler.IsRunning()){
+            scheduler.Start();
+        }
+
+        if(type_ == Type::ONESHOT){
+            scheduler.RegisterEvent(id_, deadline_timepoint_, fun, 0);
+        }else{
+            scheduler.RegisterEvent(id_, deadline_timepoint_, fun, duration_);
+        }
     };
     
     /**
@@ -77,7 +85,6 @@ public:
 
     bool operator<=(const Timer& timer);
 
-    
 public:
     static Timer CreatePeriodicTimer(uint64_t duration, uint64_t start_time = 0);
     static Timer CreateOneshotTimer(uint64_t duration, uint64_t start_time = 0);

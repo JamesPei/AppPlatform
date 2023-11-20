@@ -24,6 +24,7 @@ Timer::Timer(Timer::Type type, uint64_t duration, uint64_t start_time): type_(ty
     if(type==Type::PERIODIC){
         round_ = 1;
     }
+
 }
 
 uint64_t Timer::GetId(){

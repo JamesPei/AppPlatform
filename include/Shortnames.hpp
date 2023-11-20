@@ -2,6 +2,8 @@
 #ifndef __SHORTNAMES_HPP__
 #define __SHORTNAMES_HPP__
 
+#define TIME_BASE 1700461337000000000
+
 #include <chrono>
 using seconds = std::chrono::seconds;
 using milliseconds = std::chrono::milliseconds;
