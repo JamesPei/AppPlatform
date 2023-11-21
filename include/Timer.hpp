@@ -15,8 +15,8 @@ public:
 
     enum class Type
     {
-        ONESHOT = 1U, // single shot timer
-        PERIODIC = 2U, // periodic timer(typically async)
+        ONESHOT = 1U,
+        PERIODIC = 2U,
     };
     
     /**
@@ -45,16 +45,16 @@ public:
      * Oneshot timer: call F(Args...) when timer expire.
      * Periodic timer: call F(Args...) each round expire.
      */
-    template <typename F, typename... Args>
-    void WaitAsync(F&& fun, Args&&... args){
-        if(!scheduler.IsRunning()){
-            scheduler.Start();
-        }
+    template <typename F, typename...Args>
+    void WaitAsync(F fun, Args&&... args){
+        std::function<void()> call_back = [=]()mutable->void{ 
+            fun(std::forward<Args>(args)...); 
+        };
 
         if(type_ == Type::ONESHOT){
-            scheduler.RegisterEvent(id_, deadline_timepoint_, fun, 0);
+            scheduler.RegisterEvent(id_, deadline_timepoint_, call_back, 0);
         }else{
-            scheduler.RegisterEvent(id_, deadline_timepoint_, fun, duration_);
+            scheduler.RegisterEvent(id_, deadline_timepoint_, call_back, duration_);
         }
     };
     
@@ -62,7 +62,7 @@ public:
      * Oneshot timer: Check if timer has expired.
      * Periodic timer: Check if current round has expired(Synchonous mode only).
      */
-    bool IsExpired(uint64_t round=0);
+    bool IsExpired(const uint64_t& round=0) const;
     
     /**
      * Check if timer is running
@@ -102,7 +102,6 @@ private:
     uint64_t duration_;
     uint64_t round_;
     uint64_t deadline_timepoint_;
-    std::function<void()> callback_;
     TimerScheduler& scheduler;
 };
 

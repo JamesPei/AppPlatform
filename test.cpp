@@ -1,7 +1,10 @@
 #include "Timer.hpp"
-#include "Shortnames.hpp"
 #include <iostream>
 #include <iomanip>
+
+void test_function(int a){
+    std::cout << "test_function:" << a << std::endl;
+}
 
 int main(int argc, char const *argv[])
 {
@@ -9,47 +12,51 @@ int main(int argc, char const *argv[])
 
     if(std::string(argv[1])=="wait"){
         std::cout << "=====sync wait test=====" << "\n";
-        std::cout << "====oneshot====" << "\n";
-        for(int i=1; i<11; i++){
-            Timer syn_timer = Timer::CreateOneshotTimer(1000000000);
-            uint64_t timer_id = syn_timer.GetId();
-            std::cout << "timer id: " << timer_id << "\n";
-            int res = syn_timer.Wait();
-            std::cout << "res:" << res << "\n"; 
+        if(std::string(argv[2])=="oneshot"){
+            std::cout << "====oneshot====" << "\n";
+            for(uint64_t i=1; i<11; i++){
+                Timer syn_timer = Timer::CreateOneshotTimer(1000000000);
+                uint64_t timer_id = syn_timer.GetId();
+                std::cout << "timer id: " << timer_id << " deadline:" << syn_timer.GetDeadline() << "\n";
+                int res = syn_timer.Wait();
+                std::cout << "res:" << res << "\n"; 
+            }
+        }else{
+            std::cout << "====periodic====" << "\n";
+            Timer asyn_timer = Timer::CreatePeriodicTimer(1*1000000000);
+            uint64_t asyntimer_id = asyn_timer.GetId();
+            std::cout << "asyntimer id: " << asyntimer_id << "\n";
+            for(uint64_t i=1; i<11; i++){
+                int res = asyn_timer.Wait();
+                std::cout << "res:" << res << "\n"; 
+            }
         }
     
-        std::cout << "====periodic====" << "\n";
-        Timer asyn_timer = Timer::CreatePeriodicTimer(1*1000000000);
-        uint64_t asyntimer_id = asyn_timer.GetId();
-        std::cout << "asyntimer id: " << asyntimer_id << "\n";
-        for(int i=1; i<11; i++){
-            int res = asyn_timer.Wait();
-            std::cout << "res:" << res << "\n"; 
-        }
     }else if (std::string(argv[1])=="waitasync"){
         std::cout << "=====async wait test=====" << "\n";
-        std::cout << "====oneshot====" << "\n";
-        std::function<void()> test_function = [](){ std::cout << "test" << std::endl;};
-        for(int i=1; i<11; i++){
-            Timer syn_timer1 = Timer::CreateOneshotTimer(1000000000);
-            uint64_t timer_id = syn_timer1.GetId();
-            // std::cout << "timer id:" << timer_id << "\n";
-            syn_timer1.WaitAsync(test_function, i);
+
+        if(std::string(argv[2])=="oneshot"){
+            std::cout << "====oneshot====" << "\n";
+            for(uint64_t i=1; i<11; i++){
+                Timer syn_timer1 = Timer::CreateOneshotTimer(i*500000000);
+                // uint64_t timer_id = syn_timer1.GetId();
+                // std::cout << "timer id: " << timer_id << " deadline:" << syn_timer1.GetDeadline()-TIME_BASE << "\n";
+                syn_timer1.WaitAsync(test_function, i);
+            }
+        }else{
+            std::cout << "====periodic====" << "\n";
+            for(uint64_t i=1; i<11; i++){
+                Timer syn_timer1 = Timer::CreatePeriodicTimer(i*500000000);
+                // uint64_t timer_id = syn_timer1.GetId();
+                // std::cout << "timer id:" << timer_id << "\n";
+                // std::cout << "timer id: " << timer_id << " deadline:" << syn_timer.GetDeadline() << "\n";
+                syn_timer1.WaitAsync(test_function, i);
+            }
         }
         
-        std::cout << "====periodic====" << "\n";
-        for(int i=1; i<11; i++){
-            Timer syn_timer1 = Timer::CreatePeriodicTimer(1000000000);
-            uint64_t timer_id = syn_timer1.GetId();
-            // std::cout << "timer id:" << timer_id << "\n";
-            syn_timer1.WaitAsync(test_function, i);
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(5*1000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(30*1000));
     }
     
-
-
     std::cout << std::endl;
     return 0;
 }

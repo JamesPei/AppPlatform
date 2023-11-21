@@ -55,7 +55,7 @@ int Timer::Wait(){
     return 1;
 };
 
-bool Timer::IsExpired(uint64_t round){
+bool Timer::IsExpired(const uint64_t& round) const {
     time_point timeout = system_clock::time_point(nanoseconds(start_timepoint_));
     if(type_==Type::ONESHOT)
     {
@@ -65,7 +65,13 @@ bool Timer::IsExpired(uint64_t round){
             return true;
         }
     }else{
-        nanoseconds duration(duration_*round);
+        uint64_t r;
+        if(round!=0){
+            r = round;
+        }else{
+            r = round_;
+        }
+        nanoseconds duration(duration*r);
         if(system_clock::now() > (timeout+=duration)){
             return true;
         }
@@ -74,6 +80,9 @@ bool Timer::IsExpired(uint64_t round){
 };
 
 bool Timer::IsRunning(){
+    if(type_==Type::PERIODIC){
+
+    }
     return true;
 };
 
@@ -109,5 +118,7 @@ uint64_t Timer::GetDeadline() const {
 bool Timer::operator<=(const Timer& timer){
     if(timer.GetDeadline() <= deadline_timepoint_){
         return true;
+    }else{
+        return false;
     }
 };

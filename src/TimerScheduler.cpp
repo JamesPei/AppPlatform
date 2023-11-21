@@ -39,7 +39,11 @@ bool TimerScheduler::IsRunning(){
 }
 
 void TimerScheduler::RegisterEvent(uint64_t id, uint64_t deadline, std::function<void()> callback_, uint64_t period){
+    if(!IsRunning()){
+        Start();
+    };
     Event event{id, deadline, callback_, period};    
+    std::lock_guard<std::mutex> lock(mtx);
     events.push(event);
 };
 
@@ -54,7 +58,10 @@ void TimerScheduler::Schedule(){
             continue;
         }else{
             Event nearest_event(events.top());
-            events.pop();
+            {
+                std::lock_guard<std::mutex> lock(mtx);
+                events.pop();
+            }
 #ifdef DEBUG_MODE
     std::cout << "top timer:" << nearest_event.id << "\n";
 #endif
@@ -85,6 +92,7 @@ void TimerScheduler::Schedule(){
                 if(nearest_event.period!=0){
                     // periodic task
                     next_event.deadline += next_event.period;
+                    std::lock_guard<std::mutex> lock(mtx);
                     events.push(next_event);
                 }
 

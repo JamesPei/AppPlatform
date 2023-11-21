@@ -11,3 +11,6 @@ add_subdirectory(src)
 add_executable(${PROJECT_NAME} test.cpp)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(${PROJECT_NAME} PUBLIC Timer)
+
+enable_testing()
+add_subdirectory(tests)

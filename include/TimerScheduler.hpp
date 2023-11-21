@@ -8,6 +8,8 @@
 #include <queue>
 #include <vector>
 #include <thread>
+#include <mutex>
+#include <atomic>
 #include "Shortnames.hpp"
 
 class TimerScheduler
@@ -15,8 +17,7 @@ class TimerScheduler
 public:
     static TimerScheduler& Instance(){
         static TimerScheduler timerscheduler;
-        static TimerScheduler& instance = timerscheduler;
-        return instance;
+        return timerscheduler;
     };
 
     struct Event{
@@ -44,7 +45,8 @@ private:
     std::priority_queue<Event, std::vector<Event>, std::function<bool(Event, Event)>> events;
     std::vector<uint64_t> depreacted_events;
     std::thread scheduler_thread;
-    bool stop_flag;
+    std::atomic_bool stop_flag;
+    std::mutex mtx;
 };
 
 #endif
