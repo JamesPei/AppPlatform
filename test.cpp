@@ -2,6 +2,8 @@
 #include <iostream>
 #include <iomanip>
 
+#define TIME_BASE 1700622410
+
 void test_function(int a){
     std::cout << "test_function:" << a << std::endl;
 }

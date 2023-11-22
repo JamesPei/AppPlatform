@@ -2,11 +2,6 @@
 #include "TimerScheduler.hpp"
 #include <thread>
 
-#ifdef DEBUG_MODE
-#include <iostream>
-#include <iomanip> 
-#endif
-
 uint64_t Timer::last_id = 0;
 
 Timer::Timer(Timer::Type type, uint64_t duration, uint64_t start_time): type_(type), duration_(duration), 
@@ -47,10 +42,6 @@ int Timer::Wait(){
         start_timepoint_ = deadline_timepoint_;
         round_++;
         deadline_timepoint_ = start_timepoint_ + duration_;
-#ifdef DEBUG_MODE
-        std::cout << std::left << std::setw(16) << "next timepoint:" << start_timepoint_ << "\n";
-        std::cout << "round:" << round_ << "\n";
-#endif
     }
     return 1;
 };

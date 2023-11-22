@@ -2,11 +2,6 @@
 #include <thread>
 #include <algorithm>
 
-#ifdef DEBUG_MODE
-    #include <iostream>
-    #include <iomanip>
-#endif
-    
 void RunTask(time_point timepoint, TimerScheduler::Event event){
     std::this_thread::sleep_until(timepoint);
     event.callback_();
@@ -27,9 +22,6 @@ void TimerScheduler::Start(){
     try{
         scheduler_thread = std::thread(&TimerScheduler::Schedule, this);
     }catch(const std::exception& e){
-#ifdef DEBUG_MODE
-        std::cerr << "Create Thread Error:" << e.what() << std::endl;
-#endif
         throw std::runtime_error(e.what());
     }
 }
@@ -62,9 +54,6 @@ void TimerScheduler::Schedule(){
                 std::lock_guard<std::mutex> lock(mtx);
                 events.pop();
             }
-#ifdef DEBUG_MODE
-    std::cout << "top timer:" << nearest_event.id << "\n";
-#endif
             time_point nearest_timepoint = time_point(nanoseconds(nearest_event.deadline));
             time_point now = system_clock::now();
 
@@ -72,9 +61,6 @@ void TimerScheduler::Schedule(){
                 auto p_id = std::find(depreacted_events.cbegin(), depreacted_events.cend(), nearest_event.id);
                 if(p_id!=depreacted_events.cend()){
                     // cancaled task
-#ifdef DEBUG_MODE
-    std::cout << "cancaled task" << nearest_event.id << "\n";
-#endif
                     continue;
                 }
             }
@@ -83,12 +69,6 @@ void TimerScheduler::Schedule(){
                 // expired
                 Event next_event(nearest_event);
 
-#ifdef DEBUG_MODE
-    std::cout << "overtimed task:" << nearest_event.id << "\n";
-    std::cout << std::setw(9) << "now:" << std::chrono::time_point_cast<nanoseconds>(now).time_since_epoch().count() - TIME_BASE
-        << std::setw(9) << "\novertime:" 
-        << std::chrono::time_point_cast<nanoseconds>(nearest_timepoint).time_since_epoch().count() - TIME_BASE << "\n";
-#endif
                 if(nearest_event.period!=0){
                     // periodic task
                     next_event.deadline += next_event.period;
@@ -103,16 +83,8 @@ void TimerScheduler::Schedule(){
                 std::thread t(RunTask, nearest_timepoint, nearest_event);
                 t.detach();
             }catch(const std::exception& e){
-#ifdef DEBUG_MODE
-        std::cerr << "Create Thread Error:" << e.what() << std::endl;
-#endif
                 throw std::runtime_error(e.what());
             }
-
-
-#ifdef DEBUG_MODE
-    std::cout << std::endl;
-#endif
         }
     }
     
