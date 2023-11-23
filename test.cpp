@@ -1,11 +1,15 @@
 #include "Timer.hpp"
 #include <iostream>
 #include <iomanip>
-
-#define TIME_BASE 1700622410
+#include <assert.h>
 
 void test_function(int a){
     std::cout << "test_function:" << a << std::endl;
+}
+
+void sleep_n_seconds(uint32_t n){
+    std::cout << "sleep " << n << " seconds" <<  std::endl;
+    std::this_thread::sleep_for(seconds(n));
 }
 
 int main(int argc, char const *argv[])
@@ -43,7 +47,8 @@ int main(int argc, char const *argv[])
                 Timer syn_timer1 = Timer::CreateOneshotTimer(i*500000000);
                 // uint64_t timer_id = syn_timer1.GetId();
                 // std::cout << "timer id: " << timer_id << " deadline:" << syn_timer1.GetDeadline()-TIME_BASE << "\n";
-                syn_timer1.WaitAsync(test_function, i);
+                syn_timer1.WaitAsync(sleep_n_seconds, 1);
+                std::this_thread::sleep_for(milliseconds(500));
             }
         }else{
             std::cout << "====periodic====" << "\n";

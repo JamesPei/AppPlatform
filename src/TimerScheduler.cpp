@@ -43,6 +43,46 @@ void TimerScheduler::CancelEvent(uint64_t id){
     depreacted_events.push_back(id);
 };
 
+int TimerScheduler::SetEventState(uint64_t id, int state){
+    std::lock_guard<std::mutex> lock(mtx);
+#ifdef DEBUG_MODE
+        std::cerr << "SetEventState:" << id << "state:" << state << "\n";
+#endif
+    if(events_state.count(id)==1){
+        events_state[id].round++;
+        events_state[id].state = state;
+    }else{
+        EventState event_state{id,1,state};
+        events_state.insert({id, event_state});
+    }
+    return 1;
+};
+
+void TimerScheduler::RunTask(time_point timepoint, TimerScheduler::Event event){
+    // waiting
+    SetEventState(event.id, 1);
+    std::this_thread::sleep_until(timepoint);
+    // running
+    SetEventState(event.id, 2);
+    event.callback_();
+    // ending
+    SetEventState(event.id, 3);
+};
+
+int TimerScheduler::GetEventState(uint64_t id){
+    if(events_state.count(id)==1){
+        return events_state[id].state;
+    }
+    return -1;
+};
+
+int TimerScheduler::GetEventRound(uint64_t id){
+    if(events_state.count(id)==1){
+        return events_state[id].round;
+    }
+    return -1;
+}
+
 void TimerScheduler::Schedule(){
     while (!stop_flag)
     {
@@ -54,6 +94,7 @@ void TimerScheduler::Schedule(){
                 std::lock_guard<std::mutex> lock(mtx);
                 events.pop();
             }
+            uint64_t event_id = nearest_event.id;
             time_point nearest_timepoint = time_point(nanoseconds(nearest_event.deadline));
             time_point now = system_clock::now();
 
@@ -67,9 +108,8 @@ void TimerScheduler::Schedule(){
 
             if(now > nearest_timepoint){
                 // expired
-                Event next_event(nearest_event);
-
                 if(nearest_event.period!=0){
+                    Event next_event(nearest_event);
                     // periodic task
                     next_event.deadline += next_event.period;
                     std::lock_guard<std::mutex> lock(mtx);
@@ -80,7 +120,7 @@ void TimerScheduler::Schedule(){
             }
 
             try{
-                std::thread t(RunTask, nearest_timepoint, nearest_event);
+                std::thread t(&TimerScheduler::RunTask, this, nearest_timepoint, nearest_event);
                 t.detach();
             }catch(const std::exception& e){
                 throw std::runtime_error(e.what());

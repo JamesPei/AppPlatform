@@ -39,9 +39,8 @@ int Timer::Wait(){
             return 2;
         }
         std::this_thread::sleep_until<system_clock>(end_timepoint);
-        start_timepoint_ = deadline_timepoint_;
-        round_++;
-        deadline_timepoint_ = start_timepoint_ + duration_;
+                round_++;
+        deadline_timepoint_ += duration_;
     }
     return 1;
 };
@@ -62,7 +61,7 @@ bool Timer::IsExpired(const uint64_t& round) const {
         }else{
             r = round_;
         }
-        nanoseconds duration(duration*r);
+        nanoseconds duration(duration_*r);
         if(system_clock::now() > (timeout+=duration)){
             return true;
         }
@@ -71,12 +70,11 @@ bool Timer::IsExpired(const uint64_t& round) const {
 };
 
 bool Timer::IsRunning(){
-    if(type_==Type::PERIODIC){
-
-    }
+    if(scheduler.GetEventState(id_)==2){
     return true;
 };
-
+return false;
+};
 
 uint64_t Timer::GetTimerRound(){
     if(type_ == Type::ONESHOT){
