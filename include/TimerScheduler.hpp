@@ -26,7 +26,12 @@ public:
         uint64_t deadline; 
         std::function<void()> callback_;
         uint64_t period;
+    };
 
+    struct EventState{
+        uint64_t id;
+        uint64_t round;
+        int state;
     };
 
     void RunTask(time_point timepoint, TimerScheduler::Event event);
@@ -43,6 +48,7 @@ public:
     */
     int SetEventState(uint64_t id, int state);
     int GetEventState(uint64_t id);
+    int GetEventRound(uint64_t id);
 
 private:
     TimerScheduler();
@@ -58,7 +64,7 @@ private:
     std::thread scheduler_thread;
     std::atomic_bool stop_flag;
     std::mutex mtx;
-    std::map<uint64_t, int> events_state;
+    std::map<uint64_t, EventState> events_state;
 };
 
 #endif

@@ -53,9 +53,11 @@ int TimerScheduler::SetEventState(uint64_t id, int state){
         std::cerr << "SetEventState:" << id << "state:" << state << "\n";
 #endif
     if(events_state.count(id)==1){
-        events_state[id] = state;
+        events_state[id].round++;
+        events_state[id].state = state;
     }else{
-        events_state.insert({id, state});
+        EventState event_state{id,1,state};
+        events_state.insert({id, event_state});
     }
     return 1;
 };
@@ -76,13 +78,23 @@ void TimerScheduler::RunTask(time_point timepoint, TimerScheduler::Event event){
 
 int TimerScheduler::GetEventState(uint64_t id){
 #ifdef DEBUG_MODE
-        std::cerr << "Event state:" << events_state[id] << "\n";
+        std::cerr << "Event state:" << events_state[id].state << "\n";
 #endif
     if(events_state.count(id)==1){
-        return events_state[id];
+        return events_state[id].state;
     }
     return -1;
 };
+
+int TimerScheduler::GetEventRound(uint64_t id){
+#ifdef DEBUG_MODE
+        std::cerr << "Event round:" << events_state[id].round << "\n";
+#endif
+    if(events_state.count(id)==1){
+        return events_state[id].round;
+    }
+    return -1;
+}
 
 void TimerScheduler::Schedule(){
     while (!stop_flag)

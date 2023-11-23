@@ -44,9 +44,8 @@ int Timer::Wait(){
             return 2;
         }
         std::this_thread::sleep_until<system_clock>(end_timepoint);
-        start_timepoint_ = deadline_timepoint_;
         round_++;
-        deadline_timepoint_ = start_timepoint_ + duration_;
+        deadline_timepoint_ += duration_;
 #ifdef DEBUG_MODE
         std::cout << std::left << std::setw(16) << "next timepoint:" << start_timepoint_ << "\n";
         std::cout << "round:" << round_ << "\n";
@@ -71,7 +70,11 @@ bool Timer::IsExpired(const uint64_t& round) const {
         }else{
             r = round_;
         }
-        nanoseconds duration(duration*r);
+
+#ifdef DEBUG_MODE
+        std::cout << "round:" << round_ << "  duration:" << duration_*r << "\n";
+#endif
+        nanoseconds duration(duration_*r);
         if(system_clock::now() > (timeout+=duration)){
             return true;
         }
@@ -80,6 +83,9 @@ bool Timer::IsExpired(const uint64_t& round) const {
 };
 
 bool Timer::IsRunning(){
+#ifdef DEBUG_MODE
+        std::cout << "state:" << scheduler.GetEventState(id_) << "\n";
+#endif
     if(scheduler.GetEventState(id_)==2){
         return true;
     };
